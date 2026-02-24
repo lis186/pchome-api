@@ -16,7 +16,8 @@ const add2Cart = async function (productionId, snapupData, quantity = 1) {
     },
     timeout: 1500
   })
-  const data = JSON.parse(res.match(/jsonp_addcart\((.*?)\)/)[1])
+  const jsonpMatch = res.match(/jsonp_addcart\((.*?)\)/)
+  const data = JSON.parse(jsonpMatch ? jsonpMatch[1] : res)
   if (data.PRODTOTAL === 0) {
     throw new Error('Cart is empty')
   }

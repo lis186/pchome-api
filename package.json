@@ -25,6 +25,7 @@
     "request-promise": "^4.2.2"
   },
   "devDependencies": {
+    "chrome-remote-interface": "^0.34.0",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-import": "^2.8.0",
