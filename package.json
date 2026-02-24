@@ -12,6 +12,9 @@
   },
   "homepage": "https://github.com/ALiangLiang/pchome-api",
   "main": "index.js",
+  "bin": {
+    "pchome-cli": "./cli.js"
+  },
   "scripts": {
     "test": "node test"
   },

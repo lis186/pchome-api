@@ -118,6 +118,30 @@ const cartInfo = await api.getCartInfo(...)
 await api.order({ payWay: 'COD', ... })
 ```
 
+## CLI 工具
+
+安裝後可直接使用 `pchome-cli` 指令（輸出均為 JSON）：
+
+```shell
+# 登入（Email OTP 驗證碼）
+pchome-cli login:send your@email.com
+pchome-cli login:verify your@email.com 123456
+
+# 購物車操作
+pchome-cli cart                                   # 查看購物車
+pchome-cli add2cart DCACM3-A900IR2US-000 1        # 加入購物車（自動 snapup）
+pchome-cli remove DCACM3-A900IR2US-000            # 從購物車移除
+pchome-cli select <prodId> <cartKey>              # 勾選商品（納入結帳）
+pchome-cli select <prodId> <cartKey> --deselect   # 取消勾選
+pchome-cli coupon                                 # 查看優惠券
+```
+
+Session 預設儲存於 `~/.pchome-api/session.json`（chmod 600），可透過 `PCHOME_SESSION_FILE` 環境變數指定其他路徑。
+
+## OpenClaw Skill
+
+`skills/pchome-shopping/SKILL.md` 提供 OpenClaw agent 使用的 Skill 定義，包含完整的指令說明與 OTP 互動流程。
+
 ## 注意事項
 
 - Cookie 有有效期限，登出後即失效，需重新取得
