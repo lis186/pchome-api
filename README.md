@@ -120,23 +120,76 @@ await api.order({ payWay: 'COD', ... })
 
 ## CLI 工具
 
-安裝後可直接使用 `pchome-cli` 指令（輸出均為 JSON）：
+除了 Node.js API，也提供 `pchome-cli` 指令列工具，所有指令輸出均為 **JSON 格式**，方便腳本或 AI agent 串接。
+
+### 安裝
 
 ```shell
-# 登入（Email OTP 驗證碼）
-pchome-cli login:send your@email.com
-pchome-cli login:verify your@email.com 123456
-
-# 購物車操作
-pchome-cli cart                                   # 查看購物車
-pchome-cli add2cart DCACM3-A900IR2US-000 1        # 加入購物車（自動 snapup）
-pchome-cli remove DCACM3-A900IR2US-000            # 從購物車移除
-pchome-cli select <prodId> <cartKey>              # 勾選商品（納入結帳）
-pchome-cli select <prodId> <cartKey> --deselect   # 取消勾選
-pchome-cli coupon                                 # 查看優惠券
+npm install -g pchome-api
 ```
 
-Session 預設儲存於 `~/.pchome-api/session.json`（chmod 600），可透過 `PCHOME_SESSION_FILE` 環境變數指定其他路徑。
+或直接用 `node` 執行：
+
+```shell
+node /path/to/pchome-api/cli.js <command>
+```
+
+### 登入
+
+PChome 採用 Email OTP 驗證碼登入，需分兩步執行：
+
+```shell
+# Step 1：寄驗證碼到信箱
+pchome-cli login:send your@email.com
+
+# Step 2：收到驗證碼後完成登入
+pchome-cli login:verify your@email.com 123456
+```
+
+登入成功後 session 會自動存到 `~/.pchome-api/session.json`，之後的指令都會自動讀取，不需要重新登入（直到 session 失效）。
+
+### 指令一覽
+
+| 指令 | 說明 |
+|------|------|
+| `login:send <email>` | 寄送 OTP 驗證碼 |
+| `login:verify <email> <otp>` | 驗證 OTP 並儲存 session |
+| `snapup <prodId>` | 確認商品可訂購狀態（回傳 MAC token） |
+| `add2cart <prodId> [qty]` | 加入購物車（自動執行 snapup） |
+| `remove <prodId>` | 從購物車移除商品 |
+| `cart` | 查看購物車（含商品 Key、運費等） |
+| `select <prodId> <cartKey>` | 勾選商品（納入結帳） |
+| `select <prodId> <cartKey> --deselect` | 取消勾選（稍後購買） |
+| `select <prodId> <cartKey> --qty=2` | 勾選並設定數量 |
+| `coupon` | 查看購物車優惠券資訊 |
+
+### 範例流程
+
+```shell
+# 1. 登入
+pchome-cli login:send your@email.com
+pchome-cli login:verify your@email.com 123456
+# → { "success": true, "sessionFile": "/Users/you/.pchome-api/session.json" }
+
+# 2. 加入購物車（prodId 格式：類別碼-商品碼-規格碼）
+pchome-cli add2cart DCACM3-A900IR2US-000 1
+# → { "PRODTOTAL": 1, ... }
+
+# 3. 查看購物車，取得商品 Key（用於勾選）
+pchome-cli cart | jq '.itemlist.houses["24H"].packages[0].items | to_entries[0].value | {Key, IT_SNO, QTY}'
+# → { "Key": "c06ed5...", "IT_SNO": "DCACM3-A900IR2US-000", "QTY": 1 }
+
+# 4. 確認勾選（納入結帳）
+pchome-cli select DCACM3-A900IR2US-000 c06ed5...
+
+# 5. 前往網站完成結帳（CLI 不支援 order，需手動操作）
+```
+
+### Session 管理
+
+- 預設路徑：`~/.pchome-api/session.json`（chmod 600）
+- 自訂路徑：`PCHOME_SESSION_FILE=/path/to/session.json pchome-cli cart`
+- Session 失效時指令會回傳空資料或錯誤，重新執行 `login:send` / `login:verify` 即可
 
 ## OpenClaw Skill
 
