@@ -31,6 +31,7 @@ function API (cookies) {
 const apis = [
   'snapup',
   'add2Cart',
+  'removeFromCart',
   'getCartInfo',
   'prodCouponInfo',
   'order'
