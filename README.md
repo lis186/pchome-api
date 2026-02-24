@@ -26,15 +26,31 @@
 npm install pchome-api
 ```
 
-## 取得 Cookie
+## 登入
 
-PChome 採用 Google reCaptcha 保護登入程序，因此**無法自動登入**，需手動取得 Cookie。
+PChome 目前採用 **Email OTP 驗證碼**登入，不再使用 reCaptcha，因此可以完全自動化：
 
-Cookie 中有部分為 `HttpOnly`（包含關鍵的 `ECWEBSESS`），無法直接從瀏覽器 DevTools Console 複製，需透過以下方式取得：
+```js
+const API = require('pchome-api')
 
-### 方法一：使用腳本自動擷取（推薦）
+const api = new API({})  // 初始時不需要 cookie
 
-先在瀏覽器登入 PChome 24h，接著執行：
+// Step 1：輸入帳號，系統寄驗證碼到信箱
+await api.login.sendCode('your@email.com')
+
+// Step 2：查收信箱後，輸入驗證碼完成登入
+await api.login.verify('your@email.com', '123456')
+
+// 登入成功！之後可直接使用其他 API
+const snapupResult = await api.snapup('DCACM3-A900IR2US-000')
+```
+
+### 取得 Cookie（手動方式）
+
+若不想每次都走 OTP 流程，可取出登入後的 Cookie 儲存備用。
+Cookie 中有部分為 `HttpOnly`（包含關鍵的 `ECWEBSESS`），需透過以下方式取得：
+
+**使用腳本自動擷取**（需先以 OTP 登入，再執行）：
 
 ```js
 // get-cookies.js（需先 npm install chrome-remote-interface）
@@ -54,17 +70,11 @@ CDP(async (client) => {
 }).on('error', e => console.error(e.message));
 ```
 
-> 執行前需啟動 Chrome 並開啟遠端偵錯：`google-chrome --remote-debugging-port=9222`
+> 需啟動 Chrome 並開啟遠端偵錯：`google-chrome --remote-debugging-port=9222`
 
-### 方法二：從 DevTools 手動複製
+## 設定（使用既有 Cookie）
 
-1. 登入 [PChome 24h](https://24h.pchome.com.tw/)
-2. 開啟 DevTools → Application → Cookies → `https://24h.pchome.com.tw`
-3. 複製 `ECC`、`ECWEBSESS`、`sstSID` 的值
-
-## 設定
-
-將取得的 Cookie 填入 `config.json`（參考 `config.example.json`）：
+取得 Cookie 後填入 `config.json`（參考 `config.example.json`）可跳過 OTP 流程：
 
 ```json
 {

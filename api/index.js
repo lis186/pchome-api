@@ -19,6 +19,13 @@ function API (cookies) {
     },
     jar: this._jar
   })
+
+  // login 是物件（含 sendCode / verify），需在建構時綁定 this
+  const loginModule = require('./login')
+  this.login = {
+    sendCode: loginModule.sendCode.bind(this),
+    verify: loginModule.verify.bind(this)
+  }
 }
 
 const apis = [
