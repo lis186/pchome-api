@@ -17,6 +17,8 @@
   給入產品 ID 和數量，例如「DYAPC0-A90084I39-000」，注意最後一部分是規格編號，通常不會在網址上出現。
 - **removeFromCart** - 從購物車移除產品。
   給入產品 ID，例如「DCACM3-A900IR2US-000」，返回操作後的購物車狀態（`PRODCOUNT` 為剩餘商品數）。
+- **setCartItemSelect** - 勾選或取消勾選購物車商品（決定是否納入結帳）。
+  需先透過 `getCartInfo()` 取得商品的 `Key`，再呼叫此 API。`selected: true` = 勾選，`false` = 取消勾選（稍後購買）。
 - **getCartInfo** - 取得購物車當前資訊（含運費、支援的付款方式）。
 - **prodCouponInfo** - 取得購物車內商品的優惠券資訊。
 - **order** - 訂購。

@@ -32,6 +32,7 @@ const apis = [
   'snapup',
   'add2Cart',
   'removeFromCart',
+  'setCartItemSelect',
   'getCartInfo',
   'prodCouponInfo',
   'order'
