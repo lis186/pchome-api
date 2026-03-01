@@ -50,7 +50,7 @@ async function main () {
     console.error('  cart                                            查看購物車')
     console.error('  coupon                                          查看購物車優惠券')
     console.error('  select <prodId> <cartKey> [--deselect] [--qty=N]  勾選/取消勾選商品')
-    console.error('  search <keyword>                                搜尋商品')
+    console.error('  search <keyword> [--cateid=X] [--sort=price] [--desc] [--page=N]  搜尋商品')
     console.error('')
     console.error('Session file:', SESSION_FILE)
     process.exit(1)
@@ -133,9 +133,18 @@ async function main () {
       }
 
       case 'search': {
-        const keyword = args.join(' ')
-        if (!keyword) throw new Error('Usage: search <keyword>')
-        const result = await api.search(keyword)
+        const opts = {}
+        const words = []
+        for (const a of args) {
+          if (a.startsWith('--cateid=')) opts.cateid = a.split('=')[1]
+          else if (a.startsWith('--sort=')) opts.sort = a.split('=')[1]
+          else if (a === '--desc') opts.order = 'desc'
+          else if (a.startsWith('--page=')) opts.page = parseInt(a.split('=')[1])
+          else words.push(a)
+        }
+        const keyword = words.join(' ')
+        if (!keyword) throw new Error('Usage: search <keyword> [--cateid=DJBQ] [--sort=price] [--desc] [--page=N]')
+        const result = await api.search(keyword, opts)
         output(result)
         break
       }

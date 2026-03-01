@@ -12,7 +12,8 @@
 ## APIs
 
 - **search** - 搜尋商品。
-  給入關鍵字，回傳商品列表（Id、Name、Price、Author 等），不需要登入。
+  給入關鍵字和選項（分類篩選、排序、分頁），回傳商品列表（Id、Name、Price、Author 等），不需要登入。
+  支援選項：`cateid`（分類，如 `DJBQ` = Kobo 電子書）、`sort`（`price`/`new`/`sale`）、`order`（`asc`/`desc`）、`page`（頁碼）。
 - **snapup** - 確認目前產品的狀態。
   加入購物車前的狀態確認，若為可訂購狀態，會返回 `MAC`、`MACExpire`（有效期 15 秒），用來給 `add2Cart` 使用。
 - **add2Cart** - 將產品加入購物車。
@@ -156,7 +157,7 @@ pchome-cli login:verify your@email.com 123456
 |------|------|
 | `login:send <email>` | 寄送 OTP 驗證碼 |
 | `login:verify <email> <otp>` | 驗證 OTP 並儲存 session |
-| `search <keyword>` | 搜尋商品（不需登入） |
+| `search <keyword> [--cateid=X] [--sort=price] [--desc] [--page=N]` | 搜尋商品（不需登入） |
 | `snapup <prodId>` | 確認商品可訂購狀態（回傳 MAC token） |
 | `add2cart <prodId> [qty]` | 加入購物車（自動執行 snapup） |
 | `remove <prodId>` | 從購物車移除商品 |
