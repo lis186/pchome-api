@@ -35,7 +35,8 @@ const apis = [
   'setCartItemSelect',
   'getCartInfo',
   'prodCouponInfo',
-  'order'
+  'order',
+  'search'
 ]
 
 apis.forEach((api) => (API.prototype[api] = require('./' + api)))

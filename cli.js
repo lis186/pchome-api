@@ -50,6 +50,7 @@ async function main () {
     console.error('  cart                                            查看購物車')
     console.error('  coupon                                          查看購物車優惠券')
     console.error('  select <prodId> <cartKey> [--deselect] [--qty=N]  勾選/取消勾選商品')
+    console.error('  search <keyword>                                搜尋商品')
     console.error('')
     console.error('Session file:', SESSION_FILE)
     process.exit(1)
@@ -127,6 +128,14 @@ async function main () {
         const qtyArg = opts.find(o => o.startsWith('--qty='))
         const qty = qtyArg ? parseInt(qtyArg.split('=')[1]) : 1
         const result = await api.setCartItemSelect(prodId, !deselect, cartKey, qty)
+        output(result)
+        break
+      }
+
+      case 'search': {
+        const keyword = args.join(' ')
+        if (!keyword) throw new Error('Usage: search <keyword>')
+        const result = await api.search(keyword)
         output(result)
         break
       }
