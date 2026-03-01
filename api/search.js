@@ -19,19 +19,39 @@ const search = async function (keyword, options = {}) {
     qs.sort = SORT_MAP[sort] + '/' + (order === 'desc' ? 'dc' : 'ac')
   }
 
-  const res = await this._request({
-    url: 'https://ecshweb.pchome.com.tw/search/v4.3/all/results',
-    method: 'get',
-    qs,
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
-      Referer: 'https://24h.pchome.com.tw/'
-    },
-    json: true
-  })
+  const searchHeaders = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+    Referer: 'https://24h.pchome.com.tw/'
+  }
+
+  const [res, cats] = await Promise.all([
+    this._request({
+      url: 'https://ecshweb.pchome.com.tw/search/v4.3/all/results',
+      method: 'get',
+      qs,
+      headers: searchHeaders,
+      json: true
+    }),
+    this._request({
+      url: 'https://ecshweb.pchome.com.tw/search/v4.3/all/categories',
+      method: 'get',
+      qs: { q: keyword },
+      headers: searchHeaders,
+      json: true
+    })
+  ])
+
+  const categories = []
+  for (const group of (cats || [])) {
+    for (const node of (group.Nodes || [])) {
+      categories.push({ id: node.Id, name: node.Name, qty: node.Qty })
+    }
+  }
+
   return {
     totalRows: res.TotalRows || 0,
     totalPage: res.TotalPage || 0,
+    categories,
     prods: (res.Prods || []).map(p => ({
       Id: p.Id,
       Name: p.Name,

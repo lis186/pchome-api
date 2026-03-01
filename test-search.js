@@ -74,6 +74,31 @@ async function runTests () {
     assert(res.totalPage > 1, 'should have multiple pages')
   })
 
+  // --- 分類清單 ---
+  console.log('\ncategories:')
+
+  await test('search returns categories array', async () => {
+    const res = await api.search('游舒帆')
+    assert(Array.isArray(res.categories), 'categories should be an array')
+    assert(res.categories.length > 0, 'should have at least one category')
+  })
+
+  await test('each category has id, name, and qty', async () => {
+    const res = await api.search('游舒帆')
+    const cat = res.categories[0]
+    assert(typeof cat.id === 'string', 'id should be a string')
+    assert(typeof cat.name === 'string', 'name should be a string')
+    assert(typeof cat.qty === 'number', 'qty should be a number')
+  })
+
+  await test('categories include Kobo for 游舒帆', async () => {
+    const res = await api.search('游舒帆')
+    const kobo = res.categories.find(c => c.id === 'DJBQ')
+    assert(kobo, 'should have DJBQ (Kobo) category')
+    assert(kobo.name.includes('Kobo'), 'name should contain Kobo')
+    assert(kobo.qty === 3, 'should have 3 Kobo ebooks')
+  })
+
   // --- 組合使用 ---
   console.log('\ncombined:')
 
