@@ -11,9 +11,8 @@
 
 ## APIs
 
-- **search** - 搜尋商品。
-  給入關鍵字和選項（分類篩選、排序、分頁），回傳商品列表（Id、Name、Price、Author 等），不需要登入。
-  支援選項：`cateid`（分類，如 `DJBQ` = Kobo 電子書）、`sort`（`price`/`new`/`sale`）、`order`（`asc`/`desc`）、`page`（頁碼）。
+- **search** - 搜尋商品（不需登入）。
+  回傳分類清單（`categories`）和商品列表（`prods`），支援分類篩選、排序、分頁。
 - **snapup** - 確認目前產品的狀態。
   加入購物車前的狀態確認，若為可訂購狀態，會返回 `MAC`、`MACExpire`（有效期 15 秒），用來給 `add2Cart` 使用。
 - **add2Cart** - 將產品加入購物車。
@@ -100,12 +99,44 @@ CDP(async (client) => {
 
 ## 使用
 
-完整範例請參考 [example.js](example.js)。
+### 搜尋商品
+
+搜尋不需要登入，可以直接使用：
 
 ```js
 const API = require('pchome-api')
-const config = require('./config')
+const api = new API({})
 
+// 基本搜尋
+const res = await api.search('游舒帆')
+// → { categories: [...], totalRows: 12, totalPage: 1, prods: [...] }
+
+// 查看有哪些分類
+res.categories
+// → [{ id: 'DJBR', name: 'HyRead電子書', qty: 4 },
+//    { id: 'DJBQ', name: 'Kobo電子書', qty: 3 },
+//    { id: 'DJBN', name: '讀墨電子書', qty: 3 }, ...]
+
+// 篩選分類
+await api.search('游舒帆', { cateid: 'DJBQ' })
+// → 只有 Kobo 電子書
+
+// 排序（price / new / sale）
+await api.search('游舒帆', { sort: 'price' })              // 價格低→高
+await api.search('游舒帆', { sort: 'price', order: 'desc' }) // 價格高→低
+
+// 分頁（每頁固定 20 筆）
+await api.search('iPhone', { page: 2 })
+
+// 組合使用
+await api.search('游舒帆', { cateid: 'DJBQ', sort: 'price' })
+```
+
+### 加入購物車與訂購
+
+加入購物車和訂購需要登入，完整範例請參考 [example.js](example.js)。
+
+```js
 const api = new API(config.cookie)
 
 // 1. 確認商品狀態（MAC 有效期僅 15 秒，需立即接著執行 add2Cart）
@@ -167,26 +198,47 @@ pchome-cli login:verify your@email.com 123456
 | `select <prodId> <cartKey> --qty=2` | 勾選並設定數量 |
 | `coupon` | 查看購物車優惠券資訊 |
 
-### 範例流程
+### 搜尋範例
+
+搜尋不需要登入：
+
+```shell
+# 基本搜尋（回傳分類清單 + 商品列表）
+pchome-cli search 游舒帆
+# → { "categories": [{"id":"DJBQ","name":"Kobo電子書","qty":3}, ...],
+#     "totalRows": 12, "prods": [...] }
+
+# 用分類篩選（cateid 可從上面的 categories 取得）
+pchome-cli search 游舒帆 --cateid=DJBQ
+
+# 按價格排序
+pchome-cli search 游舒帆 --sort=price          # 低→高
+pchome-cli search 游舒帆 --sort=price --desc    # 高→低
+
+# 翻頁（每頁固定 20 筆）
+pchome-cli search iPhone --page=2
+
+# 組合：只找 Kobo 電子書，按價格排序
+pchome-cli search 游舒帆 --cateid=DJBQ --sort=price
+```
+
+### 購物車範例
+
+購物車操作需要先登入：
 
 ```shell
 # 1. 登入
 pchome-cli login:send your@email.com
 pchome-cli login:verify your@email.com 123456
-# → { "success": true, "sessionFile": "/Users/you/.pchome-api/session.json" }
 
-# 2. 加入購物車（prodId 格式：類別碼-商品碼-規格碼）
-pchome-cli add2cart DCACM3-A900IR2US-000 1
-# → { "PRODTOTAL": 1, ... }
+# 2. 搜尋 → 加入購物車
+pchome-cli search 游舒帆 --cateid=DJBQ
+pchome-cli add2cart DJBQ04-D900CIGTG-000
 
-# 3. 查看購物車，取得商品 Key（用於勾選）
-pchome-cli cart | jq '.itemlist.houses["24H"].packages[0].items | to_entries[0].value | {Key, IT_SNO, QTY}'
-# → { "Key": "c06ed5...", "IT_SNO": "DCACM3-A900IR2US-000", "QTY": 1 }
+# 3. 查看購物車
+pchome-cli cart
 
-# 4. 確認勾選（納入結帳）
-pchome-cli select DCACM3-A900IR2US-000 c06ed5...
-
-# 5. 前往網站完成結帳（CLI 不支援 order，需手動操作）
+# 4. 前往網站完成結帳（CLI 不支援 order，需手動操作）
 ```
 
 ### Session 管理
